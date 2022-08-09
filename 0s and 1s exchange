@@ -1,0 +1,130 @@
+You are given an n x n binary matrix grid. You are allowed to change at most one 0 to be 1.
+
+Return the size of the largest island in grid after applying this operation.
+
+An island is a 4-directionally connected group of 1s.
+
+ 
+
+Example 1:
+
+Input: grid = [[1,0],[0,1]]
+Output: 3
+Explanation: Change one 0 to 1 and connect two 1s, then we get an island with area = 3.
+Example 2:
+
+Input: grid = [[1,1],[1,0]]
+Output: 4
+Explanation: Change the 0 to 1 and make the island bigger, only one island with area = 4.
+Example 3:
+
+Input: grid = [[1,1],[1,1]]
+Output: 4
+Explanation: Can't change any 0 to 1, only one island with area = 4.
+ 
+
+Constraints:
+
+n == grid.length
+n == grid[i].length
+1 <= n <= 500
+grid[i][j] is either 0 or 1.
+
+
+
+
+
+class Solution {
+    /*
+    Naive solution where for every 0 encountered we're changing it to 1 then finding the largest connected group and after finding we're reseting it to 0.
+    
+now we've assigned IDS and their total area for every islands now we just need to iterate through the matrix and check if there's any zeros then check all the directions and add their sum to the ans.
+    
+    */
+    int dir[4][2]={{0,1},{1,0},{-1,0},{0,-1}};
+    
+    bool isValid(vector<vector<int>>const &grid, int &row, int &col, int id=1){
+        int n=grid.size();
+        if(id==1){
+        if(row<0 || row>=n || col<0 || col>=n || grid[row][col]!=1){
+            return false;
+        }
+        
+        }
+        else if(id==2){
+            if(row<0 || row>=n || col<0 || col>=n || grid[row][col]<=1){
+            return false;
+        }
+        }
+        return true;
+    }
+        
+    int DFS(vector<vector<int>> &grid, int row, int col,int &color){
+        
+        if(!isValid(grid,row,col)) return 0;
+        
+        grid[row][col]=color;
+            
+       
+           
+       return 1+DFS(grid, row+dir[0][0], col+dir[0][1],color)+
+                DFS(grid, row+dir[1][0], col+dir[1][1],color)+
+                DFS(grid, row+dir[2][0], col+dir[2][1],color)+
+                DFS(grid, row+dir[3][0], col+dir[3][1],color);
+        
+        return 0;
+    }
+    
+    int checkNeighbours(vector<vector<int>> &grid, unordered_map<int,int> &m, int n){
+        int ans=0;
+
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++){
+              
+                if(grid[i][j]==0){
+                    
+                    unordered_set<int> se; // to check if we're not encountering the same id
+                     int temp=0;
+                    
+                    for(int x=0;x<4;x++){ 
+                        
+                        int row=i+dir[x][0];
+                        int col=j+dir[x][1];
+                        
+                     if(isValid(grid,row,col,2) && se.count(grid[row][col])==0){
+                         
+                         se.insert(grid[row][col]);
+                         temp+=m[grid[row][col]]; 
+                     }
+                    }
+                    temp+=1; 
+                    ans=max(temp,ans);
+                }
+            }
+        }
+        return ans;
+    }
+public:
+    int largestIsland(vector<vector<int>>& grid) {
+        int ans=0;
+        int n=grid.size();
+         vector<vector<int>> visited(n,vector<int>(n,0));
+        int color =2; // assigning the ids for different islands
+        unordered_map<int,int> m;
+        for(int i=0;i<n;i++){
+            for(int j=0;j<grid.size();j++){
+                
+                if(grid[i][j]==1){
+                 m[color++]=DFS(grid,i,j,color); 
+                }
+                
+            }
+        }
+        //now we've assigned IDS and their total area for every islands now we just need to iterate through the matrix and check if there's any zeros then check all the directions and add their sum to the ans.
+        
+       ans=checkNeighbours(grid,m,n);
+        
+        
+        return ans==0?n*n:ans;
+    }
+};
