@@ -1,0 +1,91 @@
+You are given two integer arrays of the same length nums1 and nums2. In one operation, you are allowed to swap nums1[i] with nums2[i].
+
+For example, if nums1 = [1,2,3,8], and nums2 = [5,6,7,4], you can swap the element at i = 3 to obtain nums1 = [1,2,3,4] and nums2 = [5,6,7,8].
+Return the minimum number of needed operations to make nums1 and nums2 strictly increasing. The test cases are generated so that the given input always makes it possible.
+
+An array arr is strictly increasing if and only if arr[0] < arr[1] < arr[2] < ... < arr[arr.length - 1].
+
+ 
+
+Example 1:
+
+Input: nums1 = [1,3,5,4], nums2 = [1,2,3,7]
+Output: 1
+Explanation: 
+Swap nums1[3] and nums2[3]. Then the sequences are:
+nums1 = [1, 3, 5, 7] and nums2 = [1, 2, 3, 4]
+which are both strictly increasing.
+Example 2:
+
+Input: nums1 = [0,3,5,8,9], nums2 = [2,1,4,6,9]
+Output: 1
+ 
+
+Constraints:
+
+2 <= nums1.length <= 105
+nums2.length == nums1.length
+0 <= nums1[i], nums2[i] <= 2 * 105
+
+
+
+class Solution {
+public:
+    vector<pair<int, int>> v;
+    int minSwap(vector<int>& a, vector<int>& b) {
+        /*
+            Consider F(i) suffix subarray a[i:] and b[i:]
+            
+            F(i) = Returns a pair. First element is no. of swaps needed if we don't swap at ith element, 2nd if we do swap at ith
+            
+            scenarios that can happen ->
+            
+            1. dont swap at ith, dont swap at (i + 1)th
+            2. dont swap at ith, do swap at (i + 1)th
+            3. swap at ith, dont swap at (i + 1)th
+            4. swap at ith, also swap at (i + 1)th
+        */
+        
+        int n = a.size();
+        v.resize(n, {-1, -1});
+        
+        auto [dontSwap, doSwap] = F(0, a, b);
+        return min(doSwap, dontSwap);
+    }
+    
+    pair<int ,int> F(int i, vector<int> &a, vector<int> &b) {
+        int n = a.size();
+        
+        if (i == n-1) {
+            return {0, 1};
+        }
+        
+        if (v[i].first != -1 && v[i].second != -1)
+            return v[i];
+        
+        int doSwap = n, dontSwap = n;
+        
+        // check for the case when we don't swap at ith index
+        auto [l, m] = F(i + 1, a, b);
+        
+        if (a[i] < a[i + 1] && b[i] < b[i+1]) {
+            // need not swap at all
+            dontSwap = l;
+            
+            // we swap both current one as well as next one
+            doSwap = 1 + m;
+        }
+        
+        if (a[i] < b[i + 1] && b[i] < a[i+1]) {
+            // consider that we swap at next element
+            dontSwap = min(dontSwap, m);
+            
+            // consider that we swap at current element
+            doSwap = min(doSwap, 1 + l);
+        }
+        
+        // printf("i: %d, do: %d, dont: %d\n", i, doSwap, dontSwap);
+        
+        return v[i] = {dontSwap, doSwap};
+    }
+};
