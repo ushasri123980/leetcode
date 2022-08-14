@@ -1,0 +1,135 @@
+
+
+A transformation sequence from word beginWord to word endWord using a dictionary wordList is a sequence of words beginWord -> s1 -> s2 -> ... -> sk such that:
+
+Every adjacent pair of words differs by a single letter.
+Every si for 1 <= i <= k is in wordList. Note that beginWord does not need to be in wordList.
+sk == endWord
+Given two words, beginWord and endWord, and a dictionary wordList, return all the shortest transformation sequences from beginWord to endWord, or an empty list if no such sequence exists. Each sequence should be returned as a list of the words [beginWord, s1, s2, ..., sk].
+
+ 
+
+Example 1:
+
+Input: beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log","cog"]
+Output: [["hit","hot","dot","dog","cog"],["hit","hot","lot","log","cog"]]
+Explanation: There are 2 shortest transformation sequences:
+"hit" -> "hot" -> "dot" -> "dog" -> "cog"
+"hit" -> "hot" -> "lot" -> "log" -> "cog"
+Example 2:
+
+Input: beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log"]
+Output: []
+Explanation: The endWord "cog" is not in wordList, therefore there is no valid transformation sequence.
+ 
+
+Constraints:
+
+1 <= beginWord.length <= 5
+endWord.length == beginWord.length
+1 <= wordList.length <= 500
+wordList[i].length == beginWord.length
+beginWord, endWord, and wordList[i] consist of lowercase English letters.
+beginWord != endWord
+All the words in wordList are unique.
+
+
+
+
+
+
+
+
+
+
+The idea of this problem is to run bfs, where one step is changing some letter of word. For me easier to separate problem to two parts:
+
+Create graph of connections G.
+
+Run bfs on this graph with collecting all possible solutions.
+Now, let us consider steps in more details.
+
+To create graph of connections for each word, for example hit, create patterns it, ht, hi*. Then iterate over patterns and connect words in our defaultdict G.
+
+We need to run bfs, but we also need to give as answer all possible solutions, so, we need to modify our algorithm a bit. We keep two dictionaries: deps for depths of each word and paths to keep all possible paths. When we extract element from queue and look at its neighbours, we need to add new element to queue if deps[neib] == -1. Also we need to update paths[neib] if deps[neib] == -1 or deps[neib] == deps[w] +, that is to deal with all ways of optimal length.
+
+Complexity
+
+We need O(nk^2) time to create all possible patterns: for each of n words we have k patterns with length k. Then we will have no more than O(nk26) possible connections for all pairs of words, each of which has length k, so to create G we need O(nk^226) time. In practice thought this number is smaller, because graph can not have this number of connections. For the last part with bfs we have complexity O(nk^226) again, because this is the number of edges in our graph + A, where A is number of found solutions, which can be exponential. So, time complexity is O(nk^2*26 + A), space is the same
+
+class Solution {
+public:
+   vector<int>* precursor;
+	vector<vector<string>> res;
+	bool isANeighbor(string& s1, string& s2) {
+		bool hasChanged = false;
+		for (int i = 0; i < s1.size(); i++) {
+			if (s1[i] != s2[i]) {
+				if (hasChanged)
+					return false;
+				else
+					hasChanged = true;
+			}
+		}
+		return true;
+	}
+	void generateRoute(vector<string> right, vector<int>& precursor2, vector<string>& wordList) {
+		if (precursor2.size() == 0) {
+			res.push_back(right);
+			return;
+		}
+		vector<string> copy;
+		for (int i = 0; i < precursor2.size(); i++) {
+			copy = right;
+			// insert before the begin() cause we are back-tracing.
+			copy.insert(copy.begin(), wordList[precursor2[i]]);
+			generateRoute(copy, precursor[precursor2[i]], wordList);
+		}
+	
+	}
+	vector<vector<string>> findLadders(string beginWord, string endWord, vector<string>& wordList) {
+		wordList.push_back(beginWord);
+		int size = wordList.size();
+		vector<int>* neighbors = new vector<int>[size];
+		int ewordindex = -1;
+		for (int i = 0; i < size; i++) {
+			if (wordList[i] == endWord)
+				ewordindex = i;
+			for (int j = i + 1; j < size; j++) {
+				if (isANeighbor(wordList[i],wordList[j])) {
+					neighbors[i].push_back(j);
+					neighbors[j].push_back(i);
+				}
+			}
+		}
+		vector<int> steps(size);//memorize distances
+		queue<int> line;//BFS
+		steps[size - 1] = 1;
+		line.push(size - 1);//add the index of the beginWord to the queue
+		precursor = new vector<int>[size];
+		while (!line.empty()) {
+			int pos = line.front();
+			line.pop();
+			if (wordList[pos] == endWord)
+				//we stop here because we are looking for the shortest routes
+				break;
+			for (int i = 0; i < neighbors[pos].size(); i++) {
+				if (steps[neighbors[pos][i]]==0) {
+					//we have never visited here
+					steps[neighbors[pos][i]] = steps[pos] + 1;
+					precursor[neighbors[pos][i]].push_back(pos);
+					line.push(neighbors[pos][i]);
+				}
+				else if (steps[neighbors[pos][i]] == steps[pos] + 1)
+					//there's another route to get here and it has the SAME distance
+					precursor[neighbors[pos][i]].push_back(pos);
+			}
+		
+		}
+		if (ewordindex == -1 || steps[ewordindex] == 0)
+			return res;
+		vector<string> right{endWord};
+		generateRoute(right,precursor[ewordindex] , wordList);
+		return res;
+    }
+};
