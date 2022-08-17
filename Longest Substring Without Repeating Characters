@@ -1,0 +1,76 @@
+
+Medium
+
+27595
+
+1188
+
+Add to List
+
+Share
+Given a string s, find the length of the longest substring without repeating characters.
+
+ 
+
+Example 1:
+
+Input: s = "abcabcbb"
+Output: 3
+Explanation: The answer is "abc", with the length of 3.
+Example 2:
+
+Input: s = "bbbbb"
+Output: 1
+Explanation: The answer is "b", with the length of 1.
+Example 3:
+
+Input: s = "pwwkew"
+Output: 3
+Explanation: The answer is "wke", with the length of 3.
+Notice that the answer must be a substring, "pwke" is a subsequence and not a substring.
+ 
+
+Constraints:
+
+0 <= s.length <= 5 * 104
+s consists of English letters, digits, symbols and spaces.
+
+
+
+
+
+
+
+
+
+
+
+class Solution {
+public:
+    int lengthOfLongestSubstring(string s) {
+         unordered_map<int,int>memo;//element : frequency
+        int n = s.size();//size of string
+        int ans = 0;//it will store the length of the largest substring without repeating characters
+        int release = 0;
+        
+        for(int acquire = 0; acquire<n; acquire++)
+        {
+            //if the element that we want to enter already exists in the map
+            //then we have hit an invalid window
+            //so release elements untill we have released the duplicate element
+            if(memo.find(s[acquire]) != memo.end())
+            {
+                while(memo[s[acquire]] != 0)
+                {
+                    memo[s[release]] = 0;
+                    memo.erase(s[release]);
+                    release++;//now move the release pointer towards right
+                }
+            }
+            memo[s[acquire]]++;
+            int currentLength = acquire - release + 1;
+            ans = max(ans,currentLength);
+        }
+        return ans;
+    }
+};
