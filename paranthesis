@@ -1,0 +1,62 @@
+//{ Driver Code Starts
+// Initial Template for C++
+
+#include <bits/stdc++.h>
+using namespace std;
+
+// } Driver Code Ends
+// User function Template for C++
+
+class Solution{
+public:
+    int maxLength(string S){
+        // code here
+        int ans = 0;
+        int openCount = 0;
+        int closeCount = 0;
+        
+        for(int i=0;i<S.size();i++){
+            if(S[i]=='(')
+                openCount++;
+            else
+                closeCount++;
+            if(openCount==closeCount)
+                ans = max(ans,openCount*2);
+            if(openCount<closeCount){
+                openCount = 0;
+                closeCount = 0;
+            }
+        }
+        openCount = 0;
+        closeCount = 0;
+        for(int i=S.size()-1;i>=0;i--){
+            if(S[i]==')')
+                closeCount++;
+            else
+                openCount++;
+            if(openCount==closeCount)
+                ans = max(ans,closeCount*2);
+            if(openCount>closeCount){
+                openCount = 0;
+                closeCount = 0;
+            }
+        }
+        return ans;
+    }
+};
+
+//{ Driver Code Starts.
+
+int main(){
+    int t;
+    cin>>t;
+    while(t--){
+        string S;
+        cin>>S;
+        
+        Solution ob;
+        cout<<ob.maxLength(S)<<"\n";
+    }
+    return 0;
+}
+// } Driver Code Ends
